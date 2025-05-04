@@ -17,7 +17,7 @@ const Home = () => {
 
   const fetchAllTodos = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/todos");
+      const res = await axios.get("https://backendtutamsbd9-production.up.railway.app/api/todos");
       const grouped = {};
       for (let day of days) {
         grouped[day] = res.data.filter((todo) => todo.day === day);
@@ -31,9 +31,10 @@ const Home = () => {
   const addTodo = async () => {
     if (!text.trim() || !selectedDay) return;
     try {
-      await axios.post("http://localhost:5000/api/todos", {
+      await axios.post("https://backendtutamsbd9-production.up.railway.app/api/todos", {
         text,
         day: selectedDay,
+        completed: false,
       });
       setText("");
       fetchAllTodos();
@@ -45,7 +46,7 @@ const Home = () => {
 
   const deleteTodo = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/todos/${id}`);
+      await axios.delete(`https://backendtutamsbd9-production.up.railway.app/api/todos/${id}`);
       fetchAllTodos();
       showMessage("To do berhasil dihapus!");
     } catch {
@@ -55,7 +56,9 @@ const Home = () => {
 
   const completeTodo = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/todos/${id}`);
+      await axios.put(`https://backendtutamsbd9-production.up.railway.app/api/todos/${id}`, {
+        completed: true,
+      });
       fetchAllTodos();
       showMessage("To do telah dikerjakan!");
     } catch {
@@ -71,7 +74,7 @@ const Home = () => {
     <div className={`${darkMode ? "dark" : ""}`}>
       <div className="min-h-screen bg-gradient-to-br from-blue-100 to-blue-200 dark:from-gray-900 dark:to-gray-800 p-4 sm:p-6 text-gray-900 dark:text-gray-100 transition-all duration-500">
 
-        {/* Header - sticky ke atas dan samping */}
+        {/* Header */}
         <div className="sticky top-0 left-0 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-900 dark:to-indigo-900 text-white shadow-md rounded-2xl mb-6 p-4 sm:p-6 z-10">
           <div className="max-w-7xl mx-auto flex justify-between items-center">
             <h1 className="text-2xl sm:text-4xl font-bold">📅 To Do List Mingguan</h1>
@@ -114,7 +117,9 @@ const Home = () => {
                     </h2>
                     <ul className="mt-2 text-sm text-gray-700 dark:text-gray-200 space-y-1">
                       {todosByDay[day]?.slice(0, 4).map((todo) => (
-                        <li key={todo._id} className="truncate">• {todo.text}</li>
+                        <li key={todo._id} className="truncate">
+                          • {todo.completed ? <s>{todo.text}</s> : todo.text}
+                        </li>
                       ))}
                       {todosByDay[day]?.length > 4 && (
                         <li className="text-gray-500 italic">+{todosByDay[day].length - 4} lainnya</li>
@@ -164,10 +169,13 @@ const Home = () => {
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
+                          checked={todo.completed}
                           onChange={() => completeTodo(todo._id)}
                           className="h-5 w-5 text-blue-600"
                         />
-                        <span>{todo.text}</span>
+                        <span className={todo.completed ? "line-through text-gray-500" : ""}>
+                          {todo.text}
+                        </span>
                       </div>
                       <button
                         onClick={() => deleteTodo(todo._id)}
